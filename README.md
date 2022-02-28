@@ -4,5 +4,5 @@
 ![demo](demo.gif)
 
 ## Notes:
-Click to create toothpicks
-The program is made in LÖVE version 11.4 and may not run as expected on older versions.
+* Click to create toothpicks
+* The program is made in LÖVE version 11.4 and may not run as expected on older versions.
