@@ -1,47 +1,50 @@
-local length = 63
+local toothpickLength = 63
 
-function newToothpick(x,y,horizontal)
-local self={}
+local toothpickMeta = {}
+toothpickMeta.__index = toothpickMeta
 
-if horizontal then
-	self.startx = x-length/2
-	self.endx = x+length/2
-	self.starty = y
-	self.endy = y
-else
-	self.startx = x
-	self.endx = x
-	self.starty = y-length/2
-	self.endy = y+length/2
+function toothpickMeta:intersects(x, y)
+  return (self.startX==x and self.startY==y) or (self.endX==x and self.endY==y)
 end
 
-self.horizontal = horizontal
-self.new = true
-
-function self.intersects(x,y)
-	return (self.startx==x and self.starty==y) or (self.endx==x and self.endy==y)
+local function createpick(self, side, picks)
+  local x = side=="start" and self.startX or self.endX
+  local y = side=="start" and self.startY or self.endY
+  for _, tp in ipairs(picks) do
+    if tp ~= self and tp:intersects(x, y) then
+      return
+    end
+  end
+  return newToothpick(x,y,not self.horizontal)
 end
 
-local function createpick(side,picks)
-	local x = side=='start' and self.startx or self.endx
-	local y = side=='start' and self.starty or self.endy
-	for _,tp in ipairs(picks) do
-		if tp~=self and tp.intersects(x,y) then
-			return
-		end
-	end
-	return newToothpick(x,y,not self.horizontal)
+function toothpickMeta:createpicks(picks)
+  return createpick(self, "start", picks), createpick(self, "end", picks)
 end
 
-function self.createpicks(picks)
-	return createpick('start',picks), createpick('end',picks)
+function toothpickMeta:draw()
+  love.graphics.setColor(self.new and {0.1, 0.4, 0.1, 1} or {0, 0, 0, 1})
+  love.graphics.setLineWidth(2)
+  love.graphics.line(self.startX, self.startY, self.endX, self.endY)
 end
 
-function self.draw()
-	lg.setColor(self.new and {.1,.4,.1,1} or {0,0,0,1})
-	lg.setLineWidth(2)
-	lg.line(self.startx,self.starty,self.endx,self.endy)
-end
+function newToothpick(x, y, horizontal)
+  local pick = setmetatable({
+    horizontal = horizontal,
+    new = true
+  }, toothpickMeta)
 
-return self
+  if horizontal then
+    pick.startX = x - toothpickLength / 2
+    pick.endX = x + toothpickLength / 2
+    pick.startY = y
+    pick.endY = y
+  else
+    pick.startX = x
+    pick.endX = x
+    pick.startY = y - toothpickLength / 2
+    pick.endY = y + toothpickLength / 2
+  end
+
+  return pick
 end
